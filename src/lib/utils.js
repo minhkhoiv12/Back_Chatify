@@ -1,6 +1,18 @@
 import jwt from "jsonwebtoken";
 import { ENV } from "./env.js";
 
+export const getAuthCookieOptions = () => {
+  const isProduction = ENV.NODE_ENV === "production";
+
+  return {
+    httpOnly: true, // prevent XSS attacks: cross-site scripting
+    // The deployed frontend and API are on different sites, so the browser
+    // requires SameSite=None for the auth cookie to be sent cross-origin.
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+  };
+};
+
 export const generateToken = (userId, res) => {
   const { JWT_SECRET } = ENV;
   if (!JWT_SECRET) {
@@ -12,10 +24,8 @@ export const generateToken = (userId, res) => {
   });
 
   res.cookie("jwt", token, {
+    ...getAuthCookieOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000, // MS
-    httpOnly: true, // prevent XSS attacks: cross-site scripting
-    sameSite: "strict", // CSRF attacks
-    secure: ENV.NODE_ENV === "development" ? false : true,
   });
 
   return token;

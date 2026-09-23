@@ -1,5 +1,5 @@
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
-import { generateToken } from "../lib/utils.js";
+import { generateToken, getAuthCookieOptions } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { ENV } from "../lib/env.js";
@@ -95,7 +95,7 @@ export const login = async (req, res) => {
   }
 };
 export const logout = (_, res) => {
-  res.cookie("jwt", "", { maxAge: 0 });
+  res.cookie("jwt", "", { ...getAuthCookieOptions(), maxAge: 0 });
   res.status(200).json({ message: "Logged out successfully" });
 };
 export const updateProfile = async (req, res) => {
