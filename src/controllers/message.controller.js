@@ -8,13 +8,14 @@ export const getAllContacts = async (req, res) => {
     const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } })
       .select("_id fullName email profilePic")
-      .sort({ fullName: 1 })
+      .sort({ createdAt: -1 })
+      .limit(10)
       .lean();
 
     res.status(200).json(filteredUsers);
   } catch (error) {
     console.log("Error in getAllContacts:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };
 
@@ -36,7 +37,7 @@ export const searchUsers = async (req, res) => {
     })
       .select("_id fullName email profilePic")
       .sort({ fullName: 1 })
-      .limit(20)
+      .limit(10)
       .lean();
 
     res.status(200).json(users);
@@ -63,7 +64,7 @@ export const getMessagesByUserId = async (req, res) => {
     res.status(200).json(messages);
   } catch (error) {
     console.log("Error in getMessages controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };
 
@@ -74,14 +75,14 @@ export const sendMessage = async (req, res) => {
     const senderId = req.user._id;
 
     if (!text && !image) {
-      return res.status(400).json({ message: "Text or image is required." });
+      return res.status(400).json({ message: "Vui lòng nhập nội dung hoặc chọn hình ảnh." });
     }
     if (senderId.equals(receiverId)) {
-      return res.status(400).json({ message: "Cannot send messages to yourself." });
+      return res.status(400).json({ message: "Bạn không thể gửi tin nhắn cho chính mình." });
     }
     const receiverExists = await User.exists({ _id: receiverId });
     if (!receiverExists) {
-      return res.status(404).json({ message: "Receiver not found." });
+      return res.status(404).json({ message: "Không tìm thấy người nhận." });
     }
 
     let imageUrl;
@@ -108,7 +109,7 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };
 
@@ -132,6 +133,6 @@ export const getChatPartners = async (req, res) => {
     res.status(200).json(chatPartners);
   } catch (error) {
     console.error("Error in getChatPartners: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };

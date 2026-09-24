@@ -10,21 +10,24 @@ export const signup = async (req, res) => {
 
   try {
     if (!fullName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Vui lòng điền đầy đủ các trường thông tin" });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message: "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ thường, chữ hoa, chữ số và ký tự đặc biệt.",
+      });
     }
 
     // check if emailis valid: regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
+      return res.status(400).json({ message: "Định dạng email không hợp lệ" });
     }
 
     const user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    if (user) return res.status(400).json({ message: "Email này đã được sử dụng" });
 
     // 123456 => $dnjasdkasj_?dmsakmk
     const salt = await bcrypt.genSalt(10);
@@ -59,27 +62,27 @@ export const signup = async (req, res) => {
         console.error("Failed to send welcome email:", error);
       }
     } else {
-      res.status(400).json({ message: "Invalid user data" });
+      res.status(400).json({ message: "Thông tin người dùng không hợp lệ" });
     }
   } catch (error) {
     console.log("Error in signup controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password are required" });
+    return res.status(400).json({ message: "Vui lòng nhập email và mật khẩu" });
   }
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) return res.status(400).json({ message: "Email hoặc mật khẩu không chính xác" });
     // never tell the client which one is incorrect: password or email
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isPasswordCorrect) return res.status(400).json({ message: "Email hoặc mật khẩu không chính xác" });
 
     generateToken(user._id, res);
 
@@ -91,17 +94,17 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in login controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };
 export const logout = (_, res) => {
   res.cookie("jwt", "", { ...getAuthCookieOptions(), maxAge: 0 });
-  res.status(200).json({ message: "Logged out successfully" });
+  res.status(200).json({ message: "Đăng xuất thành công" });
 };
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic } = req.body;
-    if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
+    if (!profilePic) return res.status(400).json({ message: "Vui lòng chọn ảnh đại diện" });
 
     const userId = req.user._id;
 
@@ -116,6 +119,6 @@ export const updateProfile = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     console.log("Error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Hệ thống đang gặp sự cố. Vui lòng thử lại sau." });
   }
 };

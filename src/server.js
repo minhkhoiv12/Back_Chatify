@@ -30,14 +30,14 @@ app.use("/api/messages", messageRoutes);
 app.get("/", (_, res) => {
   res.status(200).json({
     success: true,
-    message: "Chatify Backend API is running",
+    message: "API Chatify đang hoạt động",
   });
 });
 
 app.get("/health", (_, res) => {
   res.status(200).json({
     success: true,
-    message: "Server is healthy",
+    message: "Máy chủ đang hoạt động bình thường",
   });
 });
 

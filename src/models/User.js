@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema(
   { timestamps: true } // createdAt & updatedAt
 );
 
+// Supports the newest-first Contacts query without scanning the whole collection.
+userSchema.index({ createdAt: -1 });
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
